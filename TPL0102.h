@@ -105,6 +105,7 @@ class TPL0102 {
     unsigned long setMicros(void);
     void switchPot(uint8_t chan, uint8_t state);
     void dataWrite(uint8_t ch, uint8_t val);
+    void selectVolatile(void);
 
   private:
 

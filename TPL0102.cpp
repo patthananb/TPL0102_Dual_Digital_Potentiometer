@@ -91,9 +91,14 @@ void TPL0102::begin(uint16_t addr, uint32_t speed) {
   _nominalResistance = TPL0102_NOMINAL_RESISTANCE;
   // I need to assign the previous value!
   readRegistersStatus();
-  
+
   _tapPointer[0] = _initialState[0];
   _tapPointer[1] = _initialState[1];
+
+  // Select the VOLATILE register bank (ACR bit7 VOL=1) and keep the pots
+  // active (~SHDN=1). Without this, writes to 0x00/0x01 land in the
+  // non-volatile IVR and the live wiper only updates at the next power-up.
+  selectVolatile();
 
   if(_debug){
 
@@ -117,9 +122,12 @@ void TPL0102::begin(uint16_t addr, float nomRes, uint32_t speed) {
   _nominalResistance = nomRes;
   // I need to assign the previous value!
   readRegistersStatus();
-  
+
   _tapPointer[0] = _initialState[0];
   _tapPointer[1] = _initialState[1];
+
+  // Select the VOLATILE register bank — see note in the other begin() above.
+  selectVolatile();
 
   if(_debug){
 
@@ -410,10 +418,34 @@ void TPL0102::maxWiper(uint8_t ch) {
 
 }
 
-// Get the theoretical current resistance value
+// Select the volatile register bank (ACR bit7 VOL=1) and keep the pots active
+// (~SHDN=1), so writes to WRA/WRB move the live wiper immediately instead of
+// the non-volatile IVR (which only loads at power-up).
+void TPL0102::selectVolatile() {
+
+  Wire.beginTransmission(address);
+  Wire.write(ACR);
+  Wire.write(VOLATILE_REG_ACCESSIBLE);
+  Wire.endTransmission(true);
+
+}
+
+// Read the actual wiper register from the chip and return its resistance.
+// Falls back to the cached tap if the I2C read fails.
 float TPL0102::readValue(uint8_t ch) {
 
   _selectedChannel = ch;
+
+  uint8_t reg = (ch == CHB) ? WRB : WRA;
+
+  Wire.beginTransmission(address);
+  Wire.write(reg);
+  if (Wire.endTransmission(false) == 0) {
+    Wire.requestFrom(address, (uint8_t)1, (uint8_t)true);
+    if (Wire.available()) {
+      _tapPointer[ch] = Wire.read();   // sync cache with hardware
+    }
+  }
 
   return (_tapPointer[ch] / TPL0102_TAP_NUMBER) * (_nominalResistance);
 
