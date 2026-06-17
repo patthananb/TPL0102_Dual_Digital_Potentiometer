@@ -18,7 +18,10 @@
 
 #include "Arduino.h"
 #include <Wire.h>
-#include <avr/pgmspace.h>
+
+#ifdef __AVR__
+  #include <avr/pgmspace.h>
+#endif
 
 #define TPL0102_TAP_NUMBER 255.0           // Total taps, 255 resistors with non-volatile memory. Wiper values are from 0x00 to 0x3F
 #define TPL0102_DEFAULT_TAP_COUNT 128.0     // Half way resistance

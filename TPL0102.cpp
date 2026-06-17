@@ -158,7 +158,7 @@ void TPL0102::switchPot(uint8_t ch, uint8_t st){
 
   while (Wire.available())   // slave may send less than requested
   {
-    ACR_VALUE = Wire.receive();    // receive a byte as character
+    ACR_VALUE = Wire.read();    // receive a byte as character
 
   }
 
@@ -187,7 +187,7 @@ void TPL0102::switchPot(uint8_t ch, uint8_t st){
 
   Wire.beginTransmission(address);
   Wire.write(ACR);
-  Wire.send(SHDN_INSTR);          // sends potentiometer value byte
+  Wire.write(SHDN_INSTR);          // sends potentiometer value byte
   Wire.endTransmission(true);     // stop transmitting
 
 }
@@ -270,7 +270,7 @@ void TPL0102::dataWrite(uint8_t ch, uint8_t val){
 
     Wire.beginTransmission(address);
     Wire.write(wiperPointer);
-    Wire.send(val);    // sends potentiometer value byte
+    Wire.write(val);    // sends potentiometer value byte
     Wire.endTransmission(true);     // stop transmitting
 
 }
@@ -431,7 +431,7 @@ void TPL0102::readRegistersStatus() {
 
     while (Wire.available())   // slave may send less than requested
     {
-      char I2CResponse = Wire.receive();    // receive a byte as character
+      char I2CResponse = Wire.read();    // receive a byte as character
 
       _initialState[pos] = (uint8_t)I2CResponse;
 
@@ -469,7 +469,7 @@ void TPL0102::readDummyRegStatus() {
     while (Wire.available())   // slave may send less than requested
     {
 
-      char I2CResponse = Wire.receive();    // receive a byte as character
+      char I2CResponse = Wire.read();    // receive a byte as character
 
       if (_debug == true) {
         Serial.print(F("Dummy ["));
